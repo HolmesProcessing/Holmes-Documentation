@@ -3,20 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Totem-Documentation's documentation!
-===============================================
+.. _Totem: https://github.com/HolmesProcessing/Holmes-Totem
 
-Contents:
+##################################################
+Totem_: A Framework for large-scale file analysis.
+##################################################
+
+
 
 .. toctree::
-   :maxdepth: 2
+    :numbered:
+    
+    Installation <rst/installation/index>
+    Services <rst/services/index>
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
