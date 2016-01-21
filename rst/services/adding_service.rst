@@ -7,6 +7,7 @@ Writing a Service
     writing_a_service/driver-scala
     writing_a_service/yourservice-rest-scala
     writing_a_service/implementation-python-docker
+    writing_a_service/implementation-golang-docker
 
 
 For Totem to recognize your service, references need to be inserted into two files:

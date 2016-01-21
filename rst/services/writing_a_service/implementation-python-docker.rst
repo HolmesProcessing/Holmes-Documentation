@@ -1,3 +1,5 @@
+.. _implementation-service-python-docker:
+
 Service Implementation: Python with Docker
 --------------------------------------------
 
@@ -46,6 +48,7 @@ If you have any further dependencies, they need to be installed in this step as 
 (Like additional python frameworks)
 
 
+
 Dockerfile
 ^^^^^^^^^^^^
 
@@ -91,9 +94,6 @@ Dockerfile, stuff that changes should go towards the end of the file.
 (Docker cashes previous build steps and if nothing changes, those build steps
 will be reused on the next build, speeding it up by a lot, especially when
 installing python like in this Dockerfile)
-
-Please refer to the Docker cheatsheet for tips, tricks and shell scripts to deal
-with Docker.
 
 
 
