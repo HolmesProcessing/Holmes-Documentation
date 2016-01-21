@@ -114,17 +114,26 @@ Lets start with some code right away.
         "gopkg.in/ini.v1"
     )
 
-These were all the imports required for this tutorial. If you have any
-further dependencies, those go in this import section.
+These were all the imports required for this tutorial. If there are any
+further dependencies those go inside this import section, too.
 
 -------------------------
 
-Every service requires configuration parameters, these are best stored in a config
-file. Since INI style config files are quite common we will introduce you to
-parsing those with **Go**.
+Every service requires configuration parameters, which are best stored in a
+configuration file of some sort.
+An example configuration file might look like this (INI style):
 
-The parsed config is best stored in a global struct and having some helper
-functions will come in handy:
+.. code-block:: ini
+
+    ServiceName     =   HelloWorldService
+    ServiceVersion  =   v2.0
+    CopyrightFile   =   ./COPYRIGHT
+    DescriptionFile =   ./DESCRIPTION
+    Host            =   localhost
+    Port            =   7715
+
+INI style configuration files are quite wide
+spread, so here is a quick rundown on how one could be parsed:
 
 .. code-block:: go
 
@@ -174,8 +183,8 @@ snippet could be used inside of the fetch_config function:
             Config.Copyright = string(data)
         }
 
-Obviously we now need a main function that reads the config file and hands it to
-the *mapconfig* function:
+Obviously a main function is required which reads the config file and hands it to
+the *fetch_config* function:
 
 .. code-block:: go
 
@@ -192,24 +201,17 @@ the *mapconfig* function:
             fmt.Println("An error occured reading the config file:", err)
         } else {
             fetch_config(cfg)
+            // further work
+            // ...
         }
     }
 
-An example configuration file might look like this:
+.. note::
 
-.. code-block:: ini
-
-    ServiceName     =   HelloWorldService
-    ServiceVersion  =   v2.0
-    CopyrightFile   =   ./COPYRIGHT
-    DescriptionFile =   ./DESCRIPTION
-    Host            =   localhost
-    Port            =   7715
-
-The config variable ``Port`` is required in our setup, ``Host`` can be left
-blank which results in binding on the localhost. ``ServiceName``,
-``ServiceVersion``, ``Description`` and ``Copyright`` are required to provide
-sufficient information about the service if queried for it.
+    The config variable ``Port`` is required in this setup, ``Host`` can be left
+    blank which results in binding on the localhost. ``ServiceName``,
+    ``ServiceVersion``, ``Description`` and ``Copyright`` are required to provide
+    sufficient information about the service if queried for it.
 
 ----------------------------------
 
