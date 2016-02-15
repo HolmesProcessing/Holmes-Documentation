@@ -41,16 +41,20 @@ following ports are open for RabbitMQ to work properly:
 
 
 
-Java 7
+Java 8
 -------
 
-Totem currently only works with Java 7 due to limitations of the used frameworks.
+.. _webupd8team: http://www.webupd8.org/2012/06/how-to-install-oracle-java-7-in-debian.html
 
-To install Java 7 in a debian based distribution:
+Totem currently only works with Java 8 due to limitations of the used frameworks.
+
+The easiest way to get it is to use the webupd8team_ repository:
 
 .. code-block:: shell
     
-    sudo apt-get install openjdk-7-jre
+    sudo add-apt-repository ppa:webupd8team/java
+    sudo apt-get update
+    sudo apt-get install oracle-java8-installer
 
 
 
@@ -103,7 +107,7 @@ Here is a Dockerfile for running your Totem in Docker.
 
 .. code-block:: shell
     
-    FROM java:openjdk-7-jre
+    FROM java:oracle-java8
 
     # enable https for apt
     RUN apt-get update && apt-get install -y apt-transport-https
@@ -135,7 +139,7 @@ Here is a Dockerfile for running a RabbitMQ server.
 
 .. code-block:: shell
 
-    FROM java:openjdk-7-jre
+    FROM java:oracle-java8
 
     # enable https for apt
     RUN apt-get update && apt-get install -y apt-transport-https
@@ -166,7 +170,7 @@ Here is a Dockerfile for running your Totem in Docker together with RabbitMQ.
 
 .. code-block:: shell
 
-    FROM java:openjdk-7-jre
+    FROM java:oracle-java8
 
     # enable https for apt
     RUN apt-get update && apt-get install -y apt-transport-https
@@ -207,3 +211,66 @@ Here is a Dockerfile for running your Totem in Docker together with RabbitMQ.
 
     # start totem
     CMD service rabbitmq-server start && java -jar /data/Holmes-Totem/target/scala-2.11/totem-assembly-1.0.jar /data/Holmes-Totem/config/totem.conf
+
+
+bootstrap.sh
+------------
+
+.. _here: https://github.com/webstergd/Holmes-Totem/blob/bootstrap/bootstrap.sh
+
+Can also be found here_.
+
+.. code-block:: shell
+
+    # General Requirements
+    sudo apt-get update
+    sudo apt-get upgrade
+    sudo apt-get install build-essential python-dev python-pip git
+
+
+    # Install Docker
+    # if 14.04
+    sudo apt-get install linux-image-extra-$(uname -r)
+    sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+    echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee -a /etc/apt/sources.list.d/docker.list
+    sudo apt-get update
+    sudo apt-get purge lxc-docker
+    sudo apt-cache policy docker-engine
+    sudo apt-get install docker-engine
+
+    # Update Docker User
+    sudo usermod -aG docker totem
+
+    # Install Docker Compose
+    sudo pip install docker-compose
+
+
+    # Install Java 
+    sudo apt-get install python-software-properties
+    sudo add-apt-repository ppa:webupd8team/java
+    sudo apt-get update
+    sudo apt-get install oracle-java8-installer
+
+
+    # SBT
+    echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 642AC823
+    sudo apt-get update
+    sudo apt-get install sbt
+
+    # Install Totem
+    sudo mkdir /data
+    cd /data
+    sudo git clone https://github.com/HolmesProcessing/Holmes-Totem.git
+    sudo chown -R totem:totem Holmes-Totem
+
+    # Built Totem
+    sbt assembly
+
+    # Start Docker containers (e.g. services)
+    cd /data/Holmes-Totem/config
+    docker-compose up -d
+
+    # Start Totem
+    cd /data/Holmes-Totem
+    java -jar 
