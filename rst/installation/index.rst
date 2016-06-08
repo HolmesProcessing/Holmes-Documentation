@@ -4,8 +4,8 @@ Installation
 
 .. note::
 
-    Setting up docker is only necessary if you want to run
-    Totem in Docker!
+    If you are new to Holmes-Totem, you should check out the section about the
+    automatic installation of Holmes-Totem.
 
 .. toctree::
     

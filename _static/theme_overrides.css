@@ -1,0 +1,23 @@
+.rst-content .line-block {
+    margin-left: 0;
+}
+.wy-table td, .rst-content table.docutils td, .rst-content table.field-list td{
+    vertical-align: top;
+}
+.wy-nav-content {
+    max-width: 1000px;
+}
+
+.row-odd > td,
+.row-even > td {
+    background-color: #f3f6f6 !important;
+}
+
+.wy-table-odd .row-odd>td,
+.wy-table-odd .row-even>td,
+.wy-table-striped tr:nth-child(2n-1) .row-odd>td,
+.wy-table-striped tr:nth-child(2n-1) .row-even>td,
+.rst-content table.docutils:not(.field-list) tr:nth-child(2n-1) .row-odd>td,
+.rst-content table.docutils:not(.field-list) tr:nth-child(2n-1) .row-even>td {
+    background-color: white !important;
+}
