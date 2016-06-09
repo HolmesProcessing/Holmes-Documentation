@@ -14,7 +14,8 @@ Totem_: A Framework for large-scale file analysis.
 .. toctree::
     :numbered:
     
-    Installation <rst/installation/index>
+    Automatic Installation <rst/universal-installer/index>
+    Manual Installation <rst/installation/index>
     Services <rst/services/index>
 
 
