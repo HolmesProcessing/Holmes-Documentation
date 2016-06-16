@@ -16,6 +16,7 @@ Totem_: A Framework for large-scale file analysis.
     
     Automatic Installation <rst/universal-installer/index>
     Manual Installation <rst/installation/index>
+    Install in Docker <rst/docker/index>
     Services <rst/services/index>
 
 
