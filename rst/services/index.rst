@@ -4,10 +4,10 @@ Services for Totem
 
 
 .. toctree::
-    
+
     communication_protocol
     accessing_samples
-    adding_service
+    writing_a_service
     example_service
 
 

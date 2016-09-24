@@ -1,8 +1,14 @@
 .rst-content .line-block {
     margin-left: 0;
 }
+
+table.docutils td .option {
+    white-space: nowrap;
+}
+
 .wy-table td, .rst-content table.docutils td, .rst-content table.field-list td{
     vertical-align: top;
+    white-space: normal;
 }
 .wy-nav-content {
     max-width: 1000px;
@@ -20,4 +26,16 @@
 .rst-content table.docutils:not(.field-list) tr:nth-child(2n-1) .row-odd>td,
 .rst-content table.docutils:not(.field-list) tr:nth-child(2n-1) .row-even>td {
     background-color: white !important;
+}
+
+.rst-content dl dt {
+    font-weight: normal !important;
+}
+
+.font-color-red {
+    color: red;
+}
+
+.font-style-underline {
+    text-decoration: underline;
 }
