@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Holmes Processing'
-copyright = u'2015, Holmes Processing'
+copyright = u'2015-2016, Holmes Processing'
 author = u'Maximilian Schott'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -253,7 +253,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'Totem-Documentation.tex', u'Totem-Documentation Documentation',
+  (master_doc, 'Holmes-Processing-Documentation.tex', u'Holmes-Processing Documentation',
    u'Maximilian Schott', 'manual'),
 ]
 
@@ -283,7 +283,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'totem-documentation', u'Totem-Documentation Documentation',
+    (master_doc, 'holmes-processing-documentation', u'Holmes-Processing Documentation',
      [author], 1)
 ]
 
@@ -297,8 +297,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'Totem-Documentation', u'Totem-Documentation Documentation',
-   author, 'Totem-Documentation', 'One line description of project.',
+  (master_doc, 'Holmes-Processing', u'Holmes-Processing Documentation',
+   author, 'Holmes-Processing', 'One line description of project.',
    'Miscellaneous'),
 ]
 

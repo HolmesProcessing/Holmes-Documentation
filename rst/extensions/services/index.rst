@@ -1,16 +1,13 @@
-******************
+===================
 Services for Totem
-******************
-
+===================
 
 .. toctree::
 
     communication_protocol
     accessing_samples
-    writing_a_service
+    writing_a_service/index
     example_service
-
-
 
 Totem's Services are pretty simple to understand. They build upon JSON as a
 messaging format, use a RESTful API and are completely independent of Totem itself.

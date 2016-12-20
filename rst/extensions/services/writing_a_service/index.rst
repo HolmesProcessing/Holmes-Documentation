@@ -1,6 +1,52 @@
+************************************
+Writing a Service
+************************************
 
-Files to Add
---------------
+.. role:: red
+    :class: font-color-red
+
+
+Overview
+::::::::::::::::::::::::::::::::::::
+
+**For a service to be accepted into the main repository, the proper additions to
+the following files need to be made:**
+
+- Config Files
+    - ``totem.conf``
+    - ``docker-compose.yml.example``
+    - ``compose_download_conf.sh``
+- Scala Files
+    - ``driver.scala``
+
+**Additionally the following files need to be added:**
+
+- Service Files
+    - ``Dockerfile``
+    - ``LICENSE``
+    - ``README.md``
+    - ``acl.conf``
+    - ``service.conf.example``
+    - ``watchdog.scala``
+    - ``<SERVICE_NAME_CAMELCASE>REST.scala``
+- Any additional files your service needs
+    - Python e.g.: ``service.py``
+    - Go e.g.: ``service.go``
+
+.. warning::
+
+    Try to stick to the naming convention (uppercase/lowercase/camelcase were
+    appropriate) to avoid confusion!
+
+    If you did not write a service yet, please consult the subcategories.
+
+
+Details
+::::::::::::::::::::::::::::::::::::
+
+Files To Add
+------------------------------------
+
 | The following table declares variables used in the sections below.
 
 These need to be replaced by their respective values.
@@ -41,13 +87,14 @@ Compare with other service implementations for suitable values.
 +---------------------------+---------------------------------------------------+
 
 Service Files
-^^^^^^^^^^^^^^
+....................................
 
 All files in this section belong into the folder
 ``src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME``.
 
 Dockerfile
-"""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In order to make optimal use of Docker's caching ability, you must use the given
 Dockerfiles and extend them according to your services needs.
 
@@ -226,11 +273,13 @@ Dockerfiles and extend them according to your services needs.
 
 
 LICENSE
-""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - The license under which the service is distributed.
 
 README.md
-""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - An appropriate readme file for your service (also displayed if the service's
   info url is looked up)
 
@@ -269,12 +318,14 @@ README.md
 
 
 acl.conf
-"""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Currently empty
 
 
 service.conf.example
-"""""""""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - JSON file containing service settings like internal port (default must be
   8080), but also service specific settings like maybe output limits or
   parsing limits.
@@ -290,12 +341,14 @@ service.conf.example
 
 
 watchdog.scala
-"""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Currently empty
 
 
 Service Logic
-""""""""""""""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - | At least one executable file or script is required to run your service.
 
   This could be for example a Python script or a Go executable.
@@ -308,4 +361,132 @@ Service Logic
 
 - All additional files required by your service also belong into the folder
   ``src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME``.
+
+
+Files to Edit
+....................................
+
+Config Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The following files can be found in the ``config/`` folder within the
+Holmes-Totem repository.
+
+totem.conf.example
+____________________________________
+
+- | The entry in the totem.conf tells Totem your service exists, where to reach it, and where to store its results.
+
+  The ``uri`` field supports multiple address entries for automatic load balancing.
+
+  .. code-block:: shell
+
+    totem {
+        services {
+            SERVICE_NAME_LOWERCASE {
+                uri = ["http://SERVICE_IP:SERVICE_PORT/analyze/?obj="]
+                resultRoutingKey = "SERVICE_NAME_LOWERCASE.result.static.totem"
+            }
+        }
+    }
+
+
+docker-compose.yml.example
+____________________________________
+
+- Holmes-Totem relies on Docker to provide the services. As such all services need
+  to provide an entry in the docker-compose file.
+
+  .. code-block:: yaml
+
+    services:
+      SERVICE_NAME_LOWERCASE:
+        build:
+          context: ../src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME_LOWERCASE
+          args:
+            conf: ${CONFSTORAGE_SERVICE_NAME}service.conf
+        ports:
+          - "SERVICE_PORT:8080"
+        restart: unless-stopped
+
+  If the service processes files (i.e. it needs access to ``/tmp/`` on the host),
+  the following option needs to be added additionally to build, ports, and restart:
+
+  .. code-block:: yaml
+
+    volumes:
+      - /tmp:/tmp:ro
+
+
+**compose_download_conf.sh**
+
+- This file runs docker-compose with certain environmental variables set, that allow fetching service configuration files from a server.
+  Add an ``export`` statement like this:
+
+  .. code-block:: shell
+
+    export CONFSTORAGE_SERVICE_NAME=${CONFSTORAGE}zipmeta/
+
+  .. warning::
+
+    In the above example, ``${CONFSTORAGE}`` is the actual term and nothing
+    needs to be replaced there.
+
+
+Scala Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following files can be found in the
+``src/main/scala/org/holmesprocessing/totem/`` folder within the
+Holmes-Totem repository
+
+driver/driver.scala
+____________________________________
+
+- Import your services scala classes (see the respective section for information
+  on these classes).
+
+  .. code-block:: scala
+
+      import org.holmesprocessing.totem.services.SERVICE_NAME_LOWERCASE.{
+          SERVICE_CLASS_SUCCESS,
+          SERVICE_CLASS_WORK
+      }
+
+- Add a case to the method ``GeneratePartial``
+
+  .. code-block:: scala
+
+      def GeneratePartial(work: String): String = {
+        work match {
+          case "SERVICE_NAME_UPPERCASE" => Random.shuffle(services.getOrElse("SERVICE_NAME_LOWERCASE", List())).head
+        }
+      }
+
+- Add a case to the method ``enumerateWork``.
+
+  .. warning::
+      If your service does not process
+      files but rather the input string, use ``uuid_filename`` instead of
+      ``orig_filename`` below.
+
+  .. code-block:: scala
+
+      def enumerateWork(key: Long, orig_filename: String, uuid_filename: String, workToDo: Map[String, List[String]]): List[TaskedWork] = {
+        val w = workToDo.map({
+          case ("SERVICE_NAME_UPPERCASE", li: List[String]) => SERVICE_CLASS_WORK(key, orig_filename, taskingConfig.default_service_timeout, "SERVICE_NAME_UPPERCASE", GeneratePartial("SERVICE_NAME_UPPERCASE"), li)
+        }).collect({
+          case x: TaskedWork => x
+        })
+        w.toList
+      }
+
+- Add a case to the method ``workRoutingKey``
+
+  .. code-block:: scala
+
+    def workRoutingKey(work: WorkResult): String = {
+      work match {
+        case x: SERVICE_CLASS_SUCCESS => conf.getString("totem.services.SERVICE_NAME_LOWERCASE.resultRoutingKey")
+      }
+    }
 

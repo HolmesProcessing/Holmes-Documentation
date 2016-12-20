@@ -1,14 +1,9 @@
-***************
-Installation
-***************
-
-.. note::
-
-    If you are new to Holmes-Totem, you should check out the section about the
-    automatic installation of Holmes-Totem.
+###########################
+Installation Documentation
+###########################
 
 .. toctree::
-    
-    docker
-    totem
-    fileserver
+
+    Automatic Installation <automatic-installation/index>
+    Manual Installation <manual-installation/index>
+    Install in Docker <install-in-docker/index>
