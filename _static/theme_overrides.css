@@ -11,7 +11,7 @@ table.docutils td .option {
     white-space: normal;
 }
 .wy-nav-content {
-    max-width: 1000px;
+    max-width: 1200px;
 }
 
 .row-odd > td,
@@ -28,6 +28,11 @@ table.docutils td .option {
     background-color: white !important;
 }
 
+/* specific setting for table sections in holmes-config */
+#configure-holmes-components td .wy-table-responsive > table > tbody > tr > td {
+    background-color: white !important;
+}
+
 .rst-content dl dt {
     font-weight: normal !important;
 }
@@ -38,4 +43,16 @@ table.docutils td .option {
 
 .font-style-underline {
     text-decoration: underline;
+}
+
+html a:visited {
+    color: #2980B9;;
+}
+
+html body a:hover {
+    color: #3091d1;
+}
+
+.wy-side-nav-search>a {
+    color: white !important;
 }

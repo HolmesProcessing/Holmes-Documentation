@@ -1,22 +1,18 @@
-.. Totem-Documentation documentation master file, created by
-   sphinx-quickstart on Wed Dec 16 11:44:51 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. _Holmes Processing: https://github.com/HolmesProcessing/
 
-.. _Totem: https://github.com/HolmesProcessing/Holmes-Totem
-
-##################################################
-Totem_: A Framework for large-scale file analysis.
-##################################################
+#######################################################
+`Holmes Processing`_: Distributed Large-Scale Analysis
+#######################################################
 
 
 
 .. toctree::
-    :numbered: 4
+    :numbered: 5
+    :maxdepth: -1
 
-    Automatic Installation <rst/universal-installer/index>
-    Manual Installation <rst/installation/index>
-    Install in Docker <rst/docker/index>
-    Services <rst/services/index>
+    About Holmes <rst/about/index>
+    Configuration <rst/configuration/index>
+    Installation <rst/installation/index>
+    Extending Holmes <rst/extensions/index>
 
 

@@ -3,6 +3,7 @@ Local Installation
 *******************
 
 | A full local installation needs to serve all 5 components.
+
 However, it is not really useful to install a RiakCS object storage on a single
 node, thus it is sufficient to only install the following 4 components:
 
@@ -15,7 +16,7 @@ The following command automatically installs all the mentioned components and
 guides the user through a basic configuration for Holmes-Storage:
 
 .. code-block:: shell
-    
+
     universal-installer.sh \
         --cassandra \
         --rabbitqm \
