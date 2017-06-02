@@ -428,6 +428,107 @@ Info-Output Generation in Python
               self.write(info)
       return InfoHandler
 
+Reading configuration file
+"""""""""""""""""""""""""""
+Each Service runs independently in an isolated docker container. The configuration settings for the Serivice has to be provided in service.conf. When The service runs, it first looks for the configuration file, in order to read its settings, and applies them to the Service. The configuration file has to be in JSON format.
+
+Services only read their configuration files at startup. This configuration settings will be used by this service only.
+
+Reading configuration is just as easy as reading reason file. I will show how to read JSON and how to use this in Services
+
+**Reading configuration in Golang**
+
+With the "json" package it's a snap to read JSON data into your Go programs. The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. We read the JSON file and then we fit the output to Config struct
+
+.. code-block:: Go
+
+  import (
+      "encoding/json" 
+      "flag" 
+      "os"
+  )
+
+  // ....
+
+  var (
+      config *Config
+      configPath string
+  )
+
+  // ....
+
+  type Config struct {
+  HTTPBinding string MaxNumberOfObjects int
+  }
+
+  // ....
+
+  flag.StringVar(&configPath, "config", "", "Path to the configuration file") flag.Parse()
+
+  config := &Config{}
+
+  cfile, _ := os.Open(configPath) dec := json.NewDecoder(cfile) // reading from json data
+
+  if err := dec.Decode(&config); err != nil {
+  // handle error
+
+  }
+
+**Reading configuration for Python**
+
+Try opening the path, reading it all in and parsing it as json. If an error occures, throw a tornado.web.HTTPError (well define behaviour by tornado for these) If parsing succeeds, update provided config dictionary.
+
+.. code-block:: python
+
+  def ParseConfig(config, path="service.conf", data=None):
+
+     if not isinstance(config, dict):
+         raise ValueError("Invalid parameter supplied to ParseConfig(config), given {}, but expects a dict".format(type(config)))
+
+     if data is None:
+         try:
+             with open(path, "r") as file:
+                 try:
+                     loaded_config = json.loads(file.read())
+                 except Exception as e:
+                     raise HTTPError(500, "Error parsing config file: {}".format(e), reason="Bad Service Configuration")
+         except Exception as e:
+             raise HTTPError(500, "Error opening config file: {}".format(e), reason="Bad Service Configuration")
+     else:
+         try:
+             loaded_config = json.loads(data)
+         except Exception as e:
+             raise HTTPError(500, "Error parsing config input: {}".format(e), reason="Bad Service Configuration")
+
+     __updateDict(config, loaded_config)
+     return StructDict(config)
+
+  def __toLower(key):
+     if isinstance(key, str):
+         return key.lower()
+     return key
+
+  def __updateDict(old, new):
+     keymap = {}
+     for key in old:
+         keymap[__toLower(key)] = key
+
+     for key in new:
+         _key = __toLower(key)
+         if _key in keymap:
+             ofrag = old[keymap[_key]]
+             nfrag = new[key]
+
+             if isinstance(ofrag, dict):
+                 if not isinstance(nfrag, dict):
+                     raise ValueError("Mismatching config, expected dict, got: {}".format(type(nfrag)))
+                 __updateDict(ofrag, nfrag)
+
+             else:
+                 # other entries are replaced if their types match
+                 if type(ofrag) != type(nfrag):
+                     raise ValueError("Mismatching config, expected {}, got: {}".format(type(ofrag),type(nfrag)))
+                 old[keymap[_key]] = nfrag
 
 
 
