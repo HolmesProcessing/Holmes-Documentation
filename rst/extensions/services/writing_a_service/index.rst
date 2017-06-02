@@ -530,6 +530,15 @@ Try opening the path, reading it all in and parsing it as json. If an error occu
                      raise ValueError("Mismatching config, expected {}, got: {}".format(type(ofrag),type(nfrag)))
                  old[keymap[_key]] = nfrag
 
+HTTP Error Codes
+"""""""""""""""
+.. code-block:: python
+
+   func returnCode200(w http.ResponseWriter, r *http.Request) {
+    // see http://golang.org/pkg/net/http/#pkg-constants
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("☄ HTTP status code returned!"))
+   }
 
 
 Files to Edit
