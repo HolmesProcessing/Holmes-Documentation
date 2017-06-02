@@ -276,6 +276,9 @@ helloworld.py
 
 
     class Service (tornado.web.RequestHandler):
+    
+    # reading configuration file.
+
         def get(self, filename):
             data = {
                 "message": "Hello World!"
@@ -284,6 +287,9 @@ helloworld.py
 
 
     class Info(tornado.web.RequestHandler):
+
+    # generating info-output.
+
         def get(self):
             description = """
                 <p>Copyright 2015 Holmes Processing
@@ -315,5 +321,82 @@ helloworld.py
     if __name__ == '__main__':
         main()
 
+helloworld.go
+::::::::::::::::::::::::::::::::::::
+
+  package main
+
+  import (
+    "encoding/json"
+    "flag"
+    "github.com/julienschmidt/httprouter"
+    "net/http"
+  )
+
+  var (
+    config   *Config
+    helloworld string
+  )
+
+  type Config struct {
+    HTTPBinding        string
+    MaxNumberOfObjects int
+  }
+
+  func main() {
+
+    var configPath string
+
+    flag.StringVar(&configPath, "config", "", "Path to the configuration file")
+    flag.Parse()
+
+    // reading configuration file.
+    config := &Config{}
+    cfile, _ := os.Open(configPath)
+    json.NewDecoder(cfile).Decode(&config)
+    
+
+    router := httprouter.New()
+    router.GET("/analyze/", handler_analyze)
+    router.GET("/", handler_info)
+    log.Fatal(http.ListenAndServe(config.HTTPBinding, router))
+  }
+
+  func handler_info(f_response http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+    fmt.Fprintf(f_response, `<p>%s - %s</p>
+      <hr>
+      <p>%s</p>
+      <hr>
+      <p>%s</p>
+      `,
+      metadata.Name,
+      metadata.Version,
+      metadata.Description,
+      metadata.License)
+
+  }
+
+  func handler_analyze(f_response http.ResponseWriter, request *http.Request, params httprouter.Params) {
+    obj := request.URL.Query().Get("obj")
+    if obj == "" {
+      http.Error(f_response, "Missing argument 'obj'", 400)
+      return
+    }
+    sample_path := "/tmp/" + obj
+    if _, err := os.Stat(sample_path); os.IsNotExist(err) {
+      http.NotFound(f_response, request)
+      return
+    }
+    
+    // Write your service logic.
+
+    f_response.Header().Set("Content-Type", "text/json; charset=utf-8")
+    json2http := json.NewEncoder(f_response)
+
+    if err := json2http.Encode(result); err != nil {
+      http.Error(f_response, "Generating JSON failed", 500)
+      return
+    }
+  }
 
 
