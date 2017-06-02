@@ -532,13 +532,32 @@ Try opening the path, reading it all in and parsing it as json. If an error occu
 
 HTTP Error Codes
 """""""""""""""
-.. code-block:: python
+.. code-block:: Go
 
-   func returnCode200(w http.ResponseWriter, r *http.Request) {
-    // see http://golang.org/pkg/net/http/#pkg-constants
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("☄ HTTP status code returned!"))
+   func returnCode500(w http.ResponseWriter, r *http.Request) {
+    http.Error(f_response, "Generating JSON failed'", 500)
    }
+
+.. code-block:: python
+# For python tornado. 
+# This May change when for another WSGI
+
+
+
++----------------+---------------------------+--------------------------------------------------------------+ 
+|HTTP Error Code | Summary                   | Operation                                                    | 
++================+===========================+==============================================================+ 
+| 200            |  OK                       |  Services returns result                                     |
++----------------+---------------------------+--------------------------------------------------------------+
+| 400            |  Bad Operation            |  Missing argument `Obj`.                                     |
++----------------+---------------------------+--------------------------------------------------------------+
+| 401            |  Authorization required   |  *currently empty*                                           |
++----------------+---------------------------+--------------------------------------------------------------+
+| 404            |  Not Found                | Invalid URL format.  A user should follow URL API scheme     |
+|                |                           | to submit objects.                                           |                                       |
++----------------+---------------------------+--------------------------------------------------------------+
+| 500            |  Internal Server Error    | Generating JSON failed                                       |
++----------------+---------------------------+--------------------------------------------------------------+
 
 
 Files to Edit
