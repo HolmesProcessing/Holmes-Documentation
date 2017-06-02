@@ -53,6 +53,10 @@ These need to be replaced by their respective values.
 
 Compare with other service implementations for suitable values.
 
+
+- All additional files required by your service also belong into the folder
+  ``src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME``.
+
 +---------------------------+---------------------------------------------------+
 | SERVICE_NAME              | The name of the service, e.g. My_Totem_Service    |
 +---------------------------+---------------------------------------------------+
@@ -349,18 +353,82 @@ watchdog.scala
 Service Logic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- | At least one executable file or script is required to run your service.
+This is the file that make the service act like a webserver.  In this file you write the logic for how to send ``raw_file`` to analysis library and convert the ouput to a JSON. This files make use of configuration file where it takes the essential settings. There are 2 main endpoints where the service can be accessible the below table them.
 
-  This could be for example a Python script or a Go executable.
++----------------+-----------------------------------+------------------------+ 
+| Endpoint       | Operation                         | System                 | 
++================+===================================+========================+ 
+| /              | Provide information about the     |                        |
+|                | service                           | Totem & Totem Dynamic  | 
++----------------+-----------------------------------+------------------------+
+| /analyze?obj=? | Perform tasking and return results| Totem.                 |
++----------------+-----------------------------------+------------------------+
 
-  .. note::
+All the services are RESTful applications. So create a webserver with "/i" and "/analyze" directories.
 
-    See the respective section for the contents of this one.
+1. ``/`` directory displays general info and discription of the Servie on how to use it.
+2. ``/analyze`` directory analyses the raw data provided and should have the following functionalities
+  1. Scan the URL and get the raw_file to be analysed from the filesystem or FTP ( refer URL API Scheme )
+  2. Read the configuration file ( Refer Read configuration scheme )
+  3. Send the raw_file to analyser library and parse output the result.
+  4. Raise Appropriate HTTP Error Code ( refer HTTP error codes )
+  5. Fetch the result and fit into a JSON file
 
-    TODO: create this documentation section
+Generating Info-output
+""""""""""""""""""""""
+Hopefully if you are aware of generating webpages, in Server side, this section becomes easier. You can use Service-info page to view the information about the Service. Basically this page should state every aspect of Service the you are creating.
 
-- All additional files required by your service also belong into the folder
-  ``src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME``.
+The INFO page should contain
+
+Author name.
+Service name and version. ( or any metadata about the service. )
+Brief Description about the Service.
+Licence
+General info about how to use the Service and expected JSON output.
+
+Info-output Generation in Go
+
+.. code-block:: Go
+
+  func info_output(f_response http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+      fmt.Fprintf(f_response, `<p>%s - %s</p>
+          <hr>
+          <p>%s</p>
+          <hr>
+          <p>%s</p>
+          `,
+          metadata.Name,
+          metadata.Version,
+          metadata.Description,
+          metadata.License)
+  }
+
+Info-Output Generation in Python
+
+.. code-block:: python
+
+  class InfoHandler(tornado.web.RequestHandler):
+          # Emits a string which describes the purpose of the analytics
+          def get(self):
+              info = """
+    <p>{name:s} - {version:s}</p>
+    <hr>
+    <p>{description:s}</p>
+    <hr>
+    <p>{license:s}</p>
+    <hr>
+    <p>{copyright:s}</p>
+              """.strip().format(
+                  name        = name,
+                  version     = version,
+                  description = description,
+                  license     = license,
+                  copyright   = copyright
+              )
+              self.write(info)
+      return InfoHandler
+
+
 
 
 Files to Edit
