@@ -595,6 +595,7 @@ Holmes totem service is RESTful service which communicates with HTTP protocol.  
 | 500            |  Internal Server Error    | Generating JSON failed                                       |
 +----------------+---------------------------+--------------------------------------------------------------+
 
+- Raising error codes in Go
 .. code-block:: Go
 
    func returnCode500(w http.ResponseWriter, r *http.Request) {
@@ -609,10 +610,10 @@ Holmes totem service is RESTful service which communicates with HTTP protocol.  
     http.Error(f_response, " Invalid URL format. ", 404)
    }
 
+- Raising error codes in Python
 .. code-block:: python
-    # For python tornado.  
 
-    # bad 
+    # For python tornado.  
     raise tornado.web.HTTPError(status_code=code, log_message=custom_msg)
 
 
