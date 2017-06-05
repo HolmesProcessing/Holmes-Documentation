@@ -45,7 +45,7 @@ Details
 ::::::::::::::::::::::::::::::::::::
 
 Files To Add
-------------------------------------
+==========================
 
 | The following table declares variables used in the sections below.
 
@@ -91,13 +91,13 @@ Compare with other service implementations for suitable values.
 +---------------------------+---------------------------------------------------+
 
 Service Files
-....................................
+----------------------------
 
 All files in this section belong into the folder
 ``src/main/scala/org/holmesprocessing/totem/services/SERVICE_NAME``.
 
 Dockerfile
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 In order to make optimal use of Docker's caching ability, you must use the given
 Dockerfiles and extend them according to your services needs.
@@ -277,12 +277,12 @@ Dockerfiles and extend them according to your services needs.
 
 
 LICENSE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 - The license under which the service is distributed.
 
 README.md
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 - An appropriate readme file for your service (also displayed if the service's
   info url is looked up)
@@ -322,13 +322,13 @@ README.md
 
 
 acl.conf
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 - Currently empty
 
 
 service.conf.example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 - JSON file containing service settings like internal port (default must be
   8080), but also service specific settings like maybe output limits or
@@ -345,134 +345,223 @@ service.conf.example
 
 
 watchdog.scala
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 - Currently empty
 
 
-Service Logic
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+YourServiceREST.scala
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is the file that make the service act like a webserver.  In this file you write the logic for how to send ``raw_file`` to analysis library and convert the ouput to a JSON. This files make use of configuration file where it takes the essential settings. There are 2 main endpoints where the service can be accessible the below table them.
+.. note::
+    
+    For most services ``YourServiceREST.scala`` can be copy & pasted and the
+    names adjusted.
 
-+----------------+-----------------------------------+------------------------+ 
-| Endpoint       | Operation                         | System                 | 
-+================+===================================+========================+ 
-| /              | Provide information about the     |                        |
-|                | service                           | Totem & Totem Dynamic  | 
-+----------------+-----------------------------------+------------------------+
-| /analyze?obj=? | Perform tasking and return results| Totem.                 |
-+----------------+-----------------------------------+------------------------+
+Now that Totem knows about your service and where to find it, we need to tell it
+how to communicate with the service. This is done in a separate file, that
+defines 3 (or more) classes and one object: 
 
-All the services are RESTful applications. So create a webserver with "/i" and "/analyze" directories.
+.. code-block:: scala
+    
+    case class YourServiceWork
+    case class YourServiceSuccess
+    case class YourServiceFailure
+    object YourServiceREST
 
-1. ``/`` directory displays general info and discription of the Servie on how to use it.
-2. ``/analyze`` directory analyses the raw data provided and should have the following functionalities
-  1. Scan the URL and get the raw_file to be analysed from the filesystem or FTP ( refer URL API Scheme )
-  2. Read the configuration file ( Refer Read configuration scheme )
-  3. Send the raw_file to analyser library and parse output the result.
-  4. Raise Appropriate HTTP Error Code ( refer HTTP error codes )
-  5. Fetch the result and fit into a JSON file
+Full working example:
 
-Generating Info-output
+.. code-block:: scala
+    
+    package org.holmesprocessing.totem.services.yourservice
+
+    import dispatch.Defaults._
+    import dispatch.{url, _}
+    import org.json4s.JsonAST.{JString, JValue}
+    import org.holmesprocessing.totem.types.{TaskedWork, WorkFailure, WorkResult, WorkSuccess}
+    import collection.mutable
+
+
+    case class yourserviceWork(key: Long, filename: String, TimeoutMillis: Int, WorkType: String, Worker: String, Arguments: List[String]) extends TaskedWork {
+      def doWork()(implicit myHttp: dispatch.Http): Future[WorkResult] = {
+
+        val uri = yourserviceREST.constructURL(Worker, filename, Arguments)
+        val requestResult = myHttp(url(uri) OK as.String)
+          .either
+          .map({
+          case Right(content) =>
+            yourserviceSuccess(true, JString(content), Arguments)
+
+          case Left(StatusCode(404)) =>
+            yourserviceFailure(false, JString("Not found (File already deleted?)"), Arguments)
+
+          case Left(StatusCode(500)) =>
+            yourserviceFailure(false, JString("Objdump service failed, check local logs"), Arguments) //would be ideal to print response body here
+
+          case Left(StatusCode(code)) =>
+            yourserviceFailure(false, JString("Some other code: " + code.toString), Arguments)
+
+          case Left(something) =>
+            yourserviceFailure(false, JString("wildcard failure: " + something.toString), Arguments)
+        })
+        requestResult
+      }
+    }
+
+
+    case class yourserviceSuccess(status: Boolean, data: JValue, Arguments: List[String], routingKey: String = "yourservice.result.static.totem", WorkType: String = "YOURSERVICE") extends WorkSuccess
+    case class yourserviceFailure(status: Boolean, data: JValue, Arguments: List[String], routingKey: String = "", WorkType: String = "YOURSERVICE") extends WorkFailure
+
+
+    object yourserviceREST {
+      def constructURL(root: String, filename: String, arguments: List[String]): String = {
+        arguments.foldLeft(new mutable.StringBuilder(root+filename))({
+          (acc, e) => acc.append(e)}).toString()
+      }
+    }
+
+
+
+
+**Explanation**
+
+The ``YourServiceWork`` class initiates the request with your service, creating
+the final ``uri`` via the ``YourServiceREST`` object.
+
+The request result is gathered and depending on what the returned HTTP status
+code was, a specific class (``YourServiceSuccess`` or ``YourServiceFailure``)
+is instantiated with the result as parameter and returned.
+
+.. warning::
+    
+    The 2 generic cases at the end of the map should be there in any case to
+    avoid exceptions.
+
+The ``YourServiceSuccess`` and ``YourServiceFailure`` classes should be self
+explanatory. They extend the default interfaces for success and failure and are
+very convenient for mapping cases as done in ``driver.scala``, for example.
+
+``YourServiceREST`` object should be self explanatory as well, it defines how the
+request address for your service gets constructed from the supplied parameters.
+
+
+
+
+Service-logic file
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is the file that make the Service act like a webserver. The service can be accessible from 2 endpoints.
+
++----------------+-----------------------------------+
+| Endpoint       | Operation                         |
++================+===================================+
+| /              | Provide information about the     |
+|                | service                           |
++----------------+-----------------------------------+
+| /analyze?obj=? | Perform tasking and return results|
++----------------+-----------------------------------+
+
+Endpoint - '/'
 """"""""""""""""""""""
-Hopefully if you are aware of generating webpages, in Server side, this section becomes easier. You can use Service-info page to view the information about the Service. Basically this page should state every aspect of Service the you are creating.
+You can use this page to view the information about the Service. Basically this page should state every aspect of Service the you are creating.
 
 The INFO page should contain
 
-Author name.
-Service name and version. ( or any metadata about the service. )
-Brief Description about the Service.
-Licence
-General info about how to use the Service and expected JSON output.
+1. Author name.
+2. Service name and version. ( or any metadata about the service. )
+3. Brief Description about the Service.
+4. Licence
+5. General information about how to use the Service and expected JSON output.
 
-Info-output Generation in Go
+**Info-output Generation in Go**
+  .. code-block:: Go
 
-.. code-block:: Go
+    func info_output(f_response http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+        fmt.Fprintf(f_response, `<p>%s - %s</p>
+            <hr>
+            <p>%s</p>
+            <hr>
+            <p>%s</p>
+            `,
+            metadata.Name,
+            metadata.Version,
+            metadata.Description,
+            metadata.License)
+    }
 
-  func info_output(f_response http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-      fmt.Fprintf(f_response, `<p>%s - %s</p>
-          <hr>
-          <p>%s</p>
-          <hr>
-          <p>%s</p>
-          `,
-          metadata.Name,
-          metadata.Version,
-          metadata.Description,
-          metadata.License)
-  }
+**Info-Output Generation in Python**
+  .. code-block:: python
 
-Info-Output Generation in Python
+    class InfoHandler(tornado.web.RequestHandler):
+            # Emits a string which describes the purpose of the analytics
+            def get(self):
+                info = """
+      <p>{name:s} - {version:s}</p>
+      <hr>
+      <p>{description:s}</p>
+      <hr>
+      <p>{license:s}</p>
+      <hr>
+      <p>{copyright:s}</p>
+                """.strip().format(
+                    name        = name,
+                    version     = version,
+                    description = description,
+                    license     = license,
+                    copyright   = copyright
+                )
+                self.write(info)
+        return InfoHandler
 
-.. code-block:: python
 
-  class InfoHandler(tornado.web.RequestHandler):
-          # Emits a string which describes the purpose of the analytics
-          def get(self):
-              info = """
-    <p>{name:s} - {version:s}</p>
-    <hr>
-    <p>{description:s}</p>
-    <hr>
-    <p>{license:s}</p>
-    <hr>
-    <p>{copyright:s}</p>
-              """.strip().format(
-                  name        = name,
-                  version     = version,
-                  description = description,
-                  license     = license,
-                  copyright   = copyright
-              )
-              self.write(info)
-      return InfoHandler
+Endpoint '/analyze?obj='
+"""""""""""""""""""""""""""
+In this Endpoint you write the logic for interacting with **analyer library** and producing the JSON output and appropriate error codes.
 
 Reading configuration file
-"""""""""""""""""""""""""""
-Each Service runs independently in an isolated docker container. The configuration settings for the Serivice has to be provided in service.conf. When The service runs, it first looks for the configuration file, in order to read its settings, and applies them to the Service. The configuration file has to be in JSON format.
+............................
 
-Services only read their configuration files at startup. This configuration settings will be used by this service only.
-
-Reading configuration is just as easy as reading reason file. I will show how to read JSON and how to use this in Services
+Before you start about writing the service logic, you first need to parse settings from service.conf ( renamed from service.conf.example ). Since the format Service's configuration file JSON, you can use any JSON parsing library.
 
 **Reading configuration in Golang**
 
-With the "json" package it's a snap to read JSON data into your Go programs. The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. We read the JSON file and then we fit the output to Config struct
+With the "json" package it's a snap to read JSON data into your Go programs. The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. We read the configuration file and then we fit the output to ``Config`` struct
 
 .. code-block:: Go
 
-  import (
-      "encoding/json" 
-      "flag" 
-      "os"
-  )
+    package main
 
-  // ....
+    import (
+        "encoding/json" 
+        "flag" 
+        "os"
+    )
 
-  var (
-      config *Config
-      configPath string
-  )
+    // ....
 
-  // ....
+    var (
+        config *Config
+        configPath string
+    )
 
-  type Config struct {
-  HTTPBinding string MaxNumberOfObjects int
-  }
+    // ....
 
-  // ....
+    type Config struct {
+    HTTPBinding string MaxNumberOfObjects int
+    }
 
-  flag.StringVar(&configPath, "config", "", "Path to the configuration file") flag.Parse()
+    // ....
 
-  config := &Config{}
+    flag.StringVar(&configPath, "config", "", "Path to the configuration file") flag.Parse()
 
-  cfile, _ := os.Open(configPath) dec := json.NewDecoder(cfile) // reading from json data
+    config := &Config{}
 
-  if err := dec.Decode(&config); err != nil {
-  // handle error
+    cfile, _ := os.Open(configPath) dec := json.NewDecoder(cfile) // reading from json data
 
-  }
+    if err := dec.Decode(&config); err != nil {
+    // handle error
+
+    }
 
 **Reading configuration for Python**
 
@@ -480,68 +569,15 @@ Try opening the path, reading it all in and parsing it as json. If an error occu
 
 .. code-block:: python
 
-  def ParseConfig(config, path="service.conf", data=None):
+    # reading configuration file
+      configPath = "./service.conf"
+      config = json.loads(open(configPath).read())
 
-     if not isinstance(config, dict):
-         raise ValueError("Invalid parameter supplied to ParseConfig(config), given {}, but expects a dict".format(type(config)))
-
-     if data is None:
-         try:
-             with open(path, "r") as file:
-                 try:
-                     loaded_config = json.loads(file.read())
-                 except Exception as e:
-                     raise HTTPError(500, "Error parsing config file: {}".format(e), reason="Bad Service Configuration")
-         except Exception as e:
-             raise HTTPError(500, "Error opening config file: {}".format(e), reason="Bad Service Configuration")
-     else:
-         try:
-             loaded_config = json.loads(data)
-         except Exception as e:
-             raise HTTPError(500, "Error parsing config input: {}".format(e), reason="Bad Service Configuration")
-
-     __updateDict(config, loaded_config)
-     return StructDict(config)
-
-  def __toLower(key):
-     if isinstance(key, str):
-         return key.lower()
-     return key
-
-  def __updateDict(old, new):
-     keymap = {}
-     for key in old:
-         keymap[__toLower(key)] = key
-
-     for key in new:
-         _key = __toLower(key)
-         if _key in keymap:
-             ofrag = old[keymap[_key]]
-             nfrag = new[key]
-
-             if isinstance(ofrag, dict):
-                 if not isinstance(nfrag, dict):
-                     raise ValueError("Mismatching config, expected dict, got: {}".format(type(nfrag)))
-                 __updateDict(ofrag, nfrag)
-
-             else:
-                 # other entries are replaced if their types match
-                 if type(ofrag) != type(nfrag):
-                     raise ValueError("Mismatching config, expected {}, got: {}".format(type(ofrag),type(nfrag)))
-                 old[keymap[_key]] = nfrag
 
 HTTP Error Codes
-"""""""""""""""
-.. code-block:: Go
+.......................
 
-   func returnCode500(w http.ResponseWriter, r *http.Request) {
-    http.Error(f_response, "Generating JSON failed'", 500)
-   }
-
-.. code-block:: python
-# For python tornado. 
-# This May change when for another WSGI
-
+Holmes totem service is RESTful service which communicates with HTTP protocol.  The first line of the HTTP response is called the status line and includes a numeric status code (such as "404") and a textual reason phrase (such as "Not Found"). Also when something went wrong in the service, we should return a http error code so that user agent can debug accordingly.
 
 
 +----------------+---------------------------+--------------------------------------------------------------+ 
@@ -559,17 +595,37 @@ HTTP Error Codes
 | 500            |  Internal Server Error    | Generating JSON failed                                       |
 +----------------+---------------------------+--------------------------------------------------------------+
 
+.. code-block:: Go
+
+   func returnCode500(w http.ResponseWriter, r *http.Request) {
+    http.Error(f_response, "Generating JSON failed'", 500)
+   }
+
+   func returnCode400(w http.ResponseWriter, r *http.Request) {
+    http.Error(f_response, " Missing argument Obj", 400)
+   }
+
+   func returnCode404(w http.ResponseWriter, r *http.Request) {
+    http.Error(f_response, " Invalid URL format. ", 404)
+   }
+
+.. code-block:: python
+    # For python tornado.  
+
+    # bad 
+    raise tornado.web.HTTPError(status_code=code, log_message=custom_msg)
+
 
 Files to Edit
-....................................
+==========================
 
 Config Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------
 The following files can be found in the ``config/`` folder within the
 Holmes-Totem repository.
 
 totem.conf.example
-____________________________________
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 - | The entry in the totem.conf tells Totem your service exists, where to reach it, and where to store its results.
 
@@ -588,7 +644,7 @@ ____________________________________
 
 
 docker-compose.yml.example
-____________________________________
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Holmes-Totem relies on Docker to provide the services. As such all services need
   to provide an entry in the docker-compose file.
@@ -614,7 +670,8 @@ ____________________________________
       - /tmp:/tmp:ro
 
 
-**compose_download_conf.sh**
+compose_download_conf.sh
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - This file runs docker-compose with certain environmental variables set, that allow fetching service configuration files from a server.
   Add an ``export`` statement like this:
@@ -630,14 +687,14 @@ ____________________________________
 
 
 Scala Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------
 
 The following files can be found in the
 ``src/main/scala/org/holmesprocessing/totem/`` folder within the
 Holmes-Totem repository
 
-driver/driver.scala
-____________________________________
+driver.scala
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Import your services scala classes (see the respective section for information
   on these classes).

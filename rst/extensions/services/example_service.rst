@@ -1,12 +1,11 @@
 Example Service: Hello World
 ************************************
 
+.. _Tornado: http://www.tornadoweb.org/en/stable/
+
 Lets implement a service as simple as possible: Hello World.
 
-
-
-totem.conf
-::::::::::::::::::::::::::::::::::::
+- totem.conf
 
 .. code-block:: shell
 
@@ -74,10 +73,8 @@ totem.conf
   }
 
 
+- driver.scala
 
-
-driver.scala
-::::::::::::::::::::::::::::::::::::
 
 .. code-block:: scala
 
@@ -217,93 +214,48 @@ driver.scala
     }
 
 
-
-HelloWorldREST.scala
-::::::::::::::::::::::::::::::::::::
-
-.. code-block:: scala
-
-    package org.holmesprocessing.totem.services.pdfparse
-
-    import dispatch.Defaults._
-    import dispatch.{url, _}
-    import org.json4s.JsonAST.{JString, JValue}
-    import org.holmesprocessing.totem.types.{TaskedWork, WorkFailure, WorkResult, WorkSuccess}
-    import collection.mutable
-
-
-    case class helloworldWork(key: Long, filename: String, TimeoutMillis: Int, WorkType: String, Worker: String, Arguments: List[String]) extends TaskedWork {
-      def doWork()(implicit myHttp: dispatch.Http): Future[WorkResult] = {
-
-        val uri = helloworldREST.constructURL(Worker, filename, Arguments)
-        val requestResult = myHttp(url(uri) OK as.String)
-          .either
-          .map({
-          case Right(content) =>
-            helloworldSuccess(true, JString(content), Arguments)
-
-          case Left(StatusCode(404)) =>
-            helloworldFailure(false, JString("Not found (File already deleted?)"), Arguments)
-
-          case Left(StatusCode(500)) =>
-            helloworldFailure(false, JString("Helloworld service failed, check local logs"), Arguments) //would be ideal to print response body here
-
-          case Left(StatusCode(code)) =>
-            helloworldFailure(false, JString("Some other code: " + code.toString), Arguments)
-
-          case Left(something) =>
-            helloworldFailure(false, JString("wildcard failure: " + something.toString), Arguments)
-        })
-        requestResult
-      }
-    }
-
-
-    case class helloworldSuccess(status: Boolean, data: JValue, Arguments: List[String], routingKey: String = "helloworld.result.static.totem", WorkType: String = "HELLOWORLD") extends WorkSuccess
-    case class pdfparseFailure(status: Boolean, data: JValue, Arguments: List[String], routingKey: String = "", WorkType: String = "HELLOWORLD") extends WorkFailure
-
-
-    object helloworldREST {
-      def constructURL(root: String, filename: String, arguments: List[String]): String = {
-        arguments.foldLeft(new mutable.StringBuilder(root+filename))({
-          (acc, e) => acc.append(e)}).toString()
-      }
-    }
+- helloworldREST.scala
 
 
 
+In Golang
+================
 
-Dockerfile for Python
-::::::::::::::::::::::::::::::::::::
+This tutorial will show how to This tutorial will show how to utilize the **Go Programming Language**
+to write the actual service.
+
+Install Dependencies
+-----------------------
+
+First of all, **Go** is required:
 
 .. code-block:: shell
 
-    # choose the operating system image to base of, refer to docker.com for available images
-    FROM :apline
+    # for ubuntu
+    apt-get install golang
+    # for macOS
+    brew install golang
 
-     # create a folder to contain your service's files
-    RUN mkdir -p /service
-    WORKDIR /service
+Whilst **Go** natively has a very good webserver, it lacks a good
+router. More specific, the router lacks the ability to parse request URIs
+directly into variables.
+In our example we will use httprouter:
 
-    # add Tornado or Flask or any WSGI compliant wrapper  
-    RUN pip install tornado
+.. code-block:: shell
 
-    # add dependencies for helloworld
-    RUN pip3 install <....>
+    go get github.com/julienschmidt/httprouter
 
-    # add all files relevant for running your service to your container
-    COPY helloworld.py /service
-    COPY LICENSE /service
+Further we need a way to parse a config file:
 
-    # add the configuration file (possibly from a storage URI)
-    ARG conf=service.conf
-    ADD $conf /service/service.conf
+.. code-block:: shell
 
-    CMD ["python3", "helloworld.py"]
+    go get gopkg.in/ini.v1
 
+If you have any further dependencies, they need to be installed in this step as well.
+(For example any additional frameworks)
 
-Dockerfile for Golang
-::::::::::::::::::::::::::::::::::::
+Dockerfile
+-------------------
 
 .. code-block:: shell
 
@@ -337,79 +289,24 @@ Dockerfile for Golang
 
     CMD ["./helloworld", "--config=service.conf"]
 
+It is important to think about the ordering the commands have in the Dockerfile,
+as that can speed up or slow down the container build process heavily.
+Stuff that does not need to be done on every build should go to the front of the
+Dockerfile, stuff that changes should go towards the end of the file.
 
-helloworld.py
-::::::::::::::::::::::::::::::::::::
-
-.. code-block:: python
-
-    import tornado
-    import tornado.web
-    import tornado.httpserver
-    import tornado.ioloop
-    import json
-
-    import os
-    from os import path
-
-
-    # reading configuration file
-    configPath = "./service.conf"
-    config = json.loads(open(configPath).read())
-
-    # service logic
-    class Service (tornado.web.RequestHandler):
-        def get(self, filename):
-          # Getting object submitteed through URL
-          object = self.get_argument('obj', strip=False)
-            data = {
-                "message": "Hello World!"
-            }
-            self.write(data)
-        
-          # return appropriate error codes
-          raise tornado.web.HTTPError(status_code=code, log_message=custom_msg)
-
-    # Generating info-output    
-    class Info(tornado.web.RequestHandler):
-        def get(self):
-            description = """
-                <p>Copyright 2017 Holmes Processing
-                <p>Description: This is the HelloWorld Service for Totem.
-            """
-            self.write(description)
-
-
-    class Application(tornado.web.Application):
-        def __init__(self):
-            handlers = [
-                (r'/', Info),
-                (r'/analyze/', Service),
-            ]
-            settings = dict(
-                template_path=path.join(path.dirname(__file__), 'templates'),
-                static_path=path.join(path.dirname(__file__), 'static'),
-            )
-            tornado.web.Application.__init__(self, handlers, **settings)
-            self.engine = None
-
-
-    def main():
-        server = tornado.httpserver.HTTPServer(Application())
-        server.listen(8888)
-        tornado.ioloop.IOLoop.instance().start()
-
-
-    if __name__ == '__main__':
-        main()
-
+(Docker cashes previous build steps and if nothing changes, those build steps
+will be reused on the next build, speeding it up by a lot, especially when
+installing python like in this Dockerfile)
 
 helloworld.go
-::::::::::::::::::::::::::::::::::::
+--------------------------
 
 .. code-block:: go
     
     package main
+
+    // These were all the imports required for this tutorial. If there are any
+    // further dependencies those go inside this import section, too.
 
     import (
       "encoding/json"
@@ -512,4 +409,133 @@ helloworld.go
       }
     }
 
+In Python 
+==================
 
+
+Install Dependencies
+-------------------------
+
+First of all, Python is required, as well as pip:
+
+.. code-block:: shell
+
+    # for ubuntu
+    apt-get install python python-pip
+
+As already explained in the section **Service logic** the Service needs
+to act as a webserver, accepting requests from Totem.
+For details please read up in the corresponding section.
+
+One easy way of providing such a webserver is to use Tornado_:
+
+.. code-block:: shell
+    
+    pip install tornado
+
+That's all dependencies we'll need for a simple service that does basically nothing.
+If you have any further dependencies, they need to be installed in this step as well.
+(Like additional python frameworks)
+
+Dockerfile
+----------------
+
+.. code-block:: shell
+
+    # choose the operating system image to base of, refer to docker.com for available images
+    FROM :apline
+
+     # create a folder to contain your service's files
+    RUN mkdir -p /service
+    WORKDIR /service
+
+    # add Tornado or Flask or any WSGI compliant wrapper  
+    RUN pip install tornado
+
+    # add dependencies for helloworld
+    RUN pip3 install <....>
+
+    # add all files relevant for running your service to your container
+    COPY helloworld.py /service
+    COPY LICENSE /service
+
+    # add the configuration file (possibly from a storage URI)
+    ARG conf=service.conf
+    ADD $conf /service/service.conf
+
+    CMD ["python3", "helloworld.py"]
+
+helloworld.py
+-------------------
+
+.. code-block:: python
+
+    import tornado
+    import tornado.web
+    import tornado.httpserver
+    import tornado.ioloop
+    import json
+
+    import os
+    from os import path
+
+
+    # reading configuration file
+    configPath = "./service.conf"
+    config = json.loads(open(configPath).read())
+
+    # service logic
+    class Service (tornado.web.RequestHandler):
+        def get(self, filename):
+          # Getting object submitteed through URL
+          object = self.get_argument('obj', strip=False)
+            data = {
+                "message": "Hello World!"
+            }
+            self.write(data)
+        
+          # return appropriate error codes
+          raise tornado.web.HTTPError(status_code=code, log_message=custom_msg)
+
+    # Generating info-output    
+    class Info(tornado.web.RequestHandler):
+        def get(self):
+            description = """
+                <p>Copyright 2017 Holmes Processing
+                <p>Description: This is the HelloWorld Service for Totem.
+            """
+            self.write(description)
+
+
+    class Application(tornado.web.Application):
+        def __init__(self):
+            handlers = [
+                (r'/', Info),
+                (r'/analyze/', Service),
+            ]
+            settings = dict(
+                template_path=path.join(path.dirname(__file__), 'templates'),
+                static_path=path.join(path.dirname(__file__), 'static'),
+            )
+            tornado.web.Application.__init__(self, handlers, **settings)
+            self.engine = None
+
+
+    def main():
+        server = tornado.httpserver.HTTPServer(Application())
+        server.listen(8888)
+        tornado.ioloop.IOLoop.instance().start()
+
+
+    if __name__ == '__main__':
+        main()
+
+
+The port in the main function needs to be adjusted as necessary and all the
+services work should go either into the Service class, or should be called from
+there.
+
+.. warning::
+    
+    Please note, that while the Info class writes a string, the Service class must
+    write a dictionary. (Totem communicates via JSON!)
