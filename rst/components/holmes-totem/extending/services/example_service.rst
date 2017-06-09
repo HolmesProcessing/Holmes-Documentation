@@ -3,7 +3,7 @@ Example Service: Hello World
 
 .. _Tornado: http://www.tornadoweb.org/en/stable/
 
-Lets implement a service as simple as possible: Hello World.
+Let's implement a service as simple as possible: Hello World.
 
 - totem.conf
 
@@ -239,13 +239,13 @@ First of all, **Go** is required:
 Whilst **Go** natively has a very good webserver, it lacks a good
 router. More specific, the router lacks the ability to parse request URIs
 directly into variables.
-In our example we will use httprouter:
+In our example we will use ``httprouter``:
 
 .. code-block:: shell
 
     go get github.com/julienschmidt/httprouter
 
-Further we need a way to parse a config file:
+Further, we need a way to parse a config file:
 
 .. code-block:: shell
 
@@ -294,7 +294,7 @@ as that can speed up or slow down the container build process heavily.
 Stuff that does not need to be done on every build should go to the front of the
 Dockerfile, stuff that changes should go towards the end of the file.
 
-(Docker cashes previous build steps and if nothing changes, those build steps
+(Docker caches previous build steps and if nothing changes, those build steps
 will be reused on the next build, speeding it up by a lot, especially when
 installing python like in this Dockerfile)
 
@@ -435,7 +435,7 @@ One easy way of providing such a webserver is to use Tornado_:
 
 That's all dependencies we'll need for a simple service that does basically nothing.
 If you have any further dependencies, they need to be installed in this step as well.
-(Like additional python frameworks)
+(Like additional Python frameworks)
 
 Dockerfile
 ----------------
@@ -443,7 +443,7 @@ Dockerfile
 .. code-block:: shell
 
     # choose the operating system image to base of, refer to docker.com for available images
-    FROM :apline
+    FROM golang:apline
 
      # create a folder to contain your service's files
     RUN mkdir -p /service
@@ -532,7 +532,7 @@ helloworld.py
 
 
 The port in the main function needs to be adjusted as necessary and all the
-services work should go either into the Service class, or should be called from
+services work should go either into the Service class or should be called from
 there.
 
 .. warning::

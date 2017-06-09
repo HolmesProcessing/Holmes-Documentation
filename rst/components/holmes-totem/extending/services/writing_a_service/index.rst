@@ -238,7 +238,7 @@ Dockerfiles and extend them according to your services needs.
     RUN mkdir -p src/SERVICE_NAME_LOWERCASE
 
     # add files to the container
-    # sources files to to GOPATH instead of /service for compilation
+    # sources files to GOPATH instead of /service for compilation
     COPY LICENSE /service
     COPY README.md /service
     COPY service.go /service
@@ -303,7 +303,7 @@ README.md
     Upon building the Dockerfile downloads a list of TLDs from iana.org.
     To update this list of TLDs, the image needs to be built again.
 
-    The service accepts domain names, ip addresses and emails as request objects.
+    The service accepts domain names, IP addresses and emails as request objects.
     These have to be supplied as a parameter after the request URL.
     (If the analysisURL parameter is set to /passivetotal, then a request for the
     domain www.passivetotal.org would look like this: /passivetotal/www.passivetotal.org)
@@ -311,13 +311,13 @@ README.md
     The service performs some checks to determine the type of the input object.
     If a passed domain name contains an invalid TLD, it is invalid and rejected.
     If a passed email address contains an invalid domain, it is rejected.
-    If a passed IP is in a reserved range, it is rejected. (ietf rfcs 6890, 4291)
+    If a passed IP is in a reserved range, it is rejected. (IETF RFC6890, RFC4291)
 
     Only if a request object is determined valid, it is sent to selected passivetotal
     api endpoints. The maximum of simultaneous requests is 9.
     If an error is encountered in any of the api queries, the request fails and returns
     an appropriate error code. Check the local logs for detailed information.
-    If the query succeeds, a json struct containing all 9 api end points is returned.
+    If the query succeeds, a JSON struct containing all 9 api endpoints is returned.
     Those endpoints that were not queried are set to null.
 
 
@@ -430,18 +430,17 @@ the final ``uri`` via the ``YourServiceREST`` object.
 
 The request result is gathered and depending on what the returned HTTP status
 code was, a specific class (``YourServiceSuccess`` or ``YourServiceFailure``)
-is instantiated with the result as parameter and returned.
+is instantiated with the result as a parameter and returned.
 
 .. warning::
     
     The 2 generic cases at the end of the map should be there in any case to
     avoid exceptions.
 
-The ``YourServiceSuccess`` and ``YourServiceFailure`` classes should be self
-explanatory. They extend the default interfaces for success and failure and are
+The ``YourServiceSuccess`` and ``YourServiceFailure`` classes should be self-explanatory. They extend the default interfaces for success and failure and are
 very convenient for mapping cases as done in ``driver.scala``, for example.
 
-``YourServiceREST`` object should be self explanatory as well, it defines how the
+``YourServiceREST`` object should be self-explanatory as well, it defines how the
 request address for your service gets constructed from the supplied parameters.
 
 
@@ -450,7 +449,7 @@ request address for your service gets constructed from the supplied parameters.
 Service-logic file
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is the file that make the Service act like a webserver. The service can be accessible from 2 endpoints.
+This is the file that makes the Service act like a web server. The service can be accessible from 2 endpoints.
 
 +----------------+-----------------------------------+
 | Endpoint       | Operation                         |
@@ -525,7 +524,7 @@ Before you start about writing the service logic, you first need to parse settin
 
 **Reading configuration in Golang**
 
-With the "json" package it's a snap to read JSON data into your Go programs. The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. We read the configuration file and then we fit the output to ``Config`` struct
+With the ``json`` package it's a snap to read JSON data into your Go programs. The json package provides Decoder and Encoder types to support the common operation of reading and writing streams of JSON data. We read the configuration file and then we fit the output to ``Config`` struct
 
 .. code-block:: Go
 
@@ -565,7 +564,7 @@ With the "json" package it's a snap to read JSON data into your Go programs. The
 
 **Reading configuration for Python**
 
-Try opening the path, reading it all in and parsing it as json. If an error occures, throw a tornado.web.HTTPError (well define behaviour by tornado for these) If parsing succeeds, update provided config dictionary.
+Try opening the path, reading it all in and parsing it as a JSON. If an error occurs, throw a tornado.web.HTTPError (well define behaviour by tornado for these) If parsing succeeds, update provided config dictionary.
 
 .. code-block:: python
 
@@ -577,7 +576,7 @@ Try opening the path, reading it all in and parsing it as json. If an error occu
 HTTP Error Codes
 .......................
 
-Holmes totem service is RESTful service which communicates with HTTP protocol.  The first line of the HTTP response is called the status line and includes a numeric status code (such as "404") and a textual reason phrase (such as "Not Found"). Also when something went wrong in the service, we should return a http error code so that user agent can debug accordingly.
+Holmes totem service is RESTful service which communicates with HTTP protocol.  The first line of the HTTP response is called the status line and includes a numeric status code (such as "404") and a textual reason phrase (such as "Not Found"). Also when something went wrong in the service, we should return a HTTP error code so that user agent can debug accordingly.
 
 
 +----------------+---------------------------+--------------------------------------------------------------+ 
@@ -590,7 +589,7 @@ Holmes totem service is RESTful service which communicates with HTTP protocol.  
 | 401            |  Authorization required   |  *currently empty*                                           |
 +----------------+---------------------------+--------------------------------------------------------------+
 | 404            |  Not Found                | Invalid URL format.  A user should follow URL API scheme     |
-|                |                           | to submit objects.                                           |                                       |
+|                |                           | to submit objects.                                           |
 +----------------+---------------------------+--------------------------------------------------------------+
 | 500            |  Internal Server Error    | Generating JSON failed                                       |
 +----------------+---------------------------+--------------------------------------------------------------+
@@ -744,4 +743,3 @@ driver.scala
         case x: SERVICE_CLASS_SUCCESS => conf.getString("totem.services.SERVICE_NAME_LOWERCASE.resultRoutingKey")
       }
     }
-

@@ -15,7 +15,6 @@ See the official `website <sbt_>`_ for more info.
     sudo apt-get install -y sbt
 
 
-
 Configuration
 ################
 
@@ -104,7 +103,7 @@ values. Additionally the ``tasking_settings.default_service_timeout`` may need
 changing, too. (The former two are given as milliseconds, the
 latter as seconds)
 
-Most settings regarding RabbitMQ are of no interest for a regular user. The only
+Most settings regarding RabbitMQ are of no interest to a regular user. The only
 things that need to be adjusted are the credentials and the address.
 
 More interesting are the service entries. They offer the ability to configure
@@ -121,16 +120,6 @@ The schema for the URIs and the routing key is always the same though.
 
 The suffix ``result.static.totem`` always corresponds to the suffix defined in
 the RabbitMQ settings.
-
-
-
-|
-
-----
-
-
-
-
 
 
 Running

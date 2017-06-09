@@ -7,7 +7,7 @@ Installation
 .. _FakeS3: https://github.com/jubos/fake-s3
 .. _Minio: https://github.com/minio/minio
 .. _Pithos: http://pithos.io
-.. _RIAKInstall: http://docs.basho.com/riak/cs/2.1.1/tutorials/fast-track/local-testing-environment/ 
+.. _RIAKInstall: http://docs.basho.com/riak/cs/2.1.1/tutorials/fast-track/local-testing-environment/
 .. _SASI: https://github.com/apache/cassandra/blob/trunk/doc/SASI.md
 .. _Views: https://www.datastax.com/dev/blog/new-in-cassandra-3-0-materialized-views
 .. _CassandraINS: https://www.datastax.com/dev/blog/new-in-cassandra-3-0-materialized-views
@@ -59,7 +59,7 @@ There are several tools you can use for implementing Object Stores. Depending on
 | Fake-S3  |    [x]      |     []       |      []       |
 +----------+-------------+--------------+---------------+
 
-If you want to run Holmes-Storage on your local machine for testing or development purposes, we recommend you use lightweight servers compatible with the Amazon S3 API. This will make the installation and usage of Holmes-Storage faster and more efficient. There are several great options to fulfill this role: `Fake-S3 <FakeS3_>`_, `Minio <Minio_>`_, `Pithos <Pithos_>`_ etc. The above mentioned frameworks are only suggestions, any S3 compatible storage will do. Check out their documentation to find out which option is more suitable for the work you intend to do.
+If you want to run Holmes-Storage on your local machine for testing or development purposes, we recommend you use lightweight servers compatible with the Amazon S3 API. This will make the installation and usage of Holmes-Storage faster and more efficient. There are several great options to fulfill this role: `Fake-S3 <FakeS3_>`_, `Minio <Minio_>`_, `Pithos <Pithos_>`_ etc. The above-mentioned frameworks are only suggestions, any S3 compatible storage will do. Check out their documentation to find out which option is more suitable for the work you intend to do.
 
 Document Stores
 """""""""""""""""""
@@ -120,7 +120,7 @@ Copy the default configuration file located in config/storage.conf.example and c
 
 	$ cp storage.conf.example storage.conf
 
-Update the storage.conf file in config folder and adjust the ports and IPs to point at your cluster nodes. To build the Holmes-Storage, just run
+Update the ``storage.conf`` file in config folder and adjust the ports and IPs to point to your cluster nodes. To build the Holmes-Storage, just run
 
 .. code-block:: shell
 
@@ -132,13 +132,13 @@ Setup the database by calling
 
 	$ ./Holmes-Storage --config <path_to_config> --setup
 
-This will create the configured keyspace if it does not exist yet. For cassandra, the default keyspace will use the following replication options:
+This will create the configured keyspace if it does not exist yet. For Cassandra, the default keyspace will use the following replication options:
 
 .. code-block:: shell
 
 	{'class': 'NetworkTopologyStrategy', 'dc': '2'}
 
-If you want to change this, you can do so after the setup by connecting with cqlsh and changing it manually. For more information about that we refer to the official documentation of cassandra Cassandra Replication Altering Keyspace You can also create the keyspace with different replication options before executing the setup and the setup won't overwrite that. The setup will also create the necessary tables and indices.
+If you want to change this, you can do so after the setup by connecting with cqlsh and changing it manually. For more information about that we refer to the official documentation of Cassandra (Cassandra Replication Altering Keyspace)  You can also create the keyspace with different replication options before executing the setup and the setup won't overwrite that. The setup will also create the necessary tables and indices.
 
 Setup the object storer by calling:
 
@@ -160,7 +160,7 @@ On a new cluster, Holmes-Storage will setup the database in an optimal way for t
 Nodetool
 """"""""""
 
-Based on the CAP theorem, Cassandra can be classified as an `AP <AP_>`_ database. The cost for strong consistency is higher latency, so the database has its own mechanisms to ensure eventual consistency in the system. However, human intervention is often necessary. It is critical that the Cassandra cluster be regularly repaired using the nodetool repair and nodetool compact command. The following documentations `1 <ONE_>`_, `2 <TWO_>`_ give an overview of the nodetool functionality. We suggest exploring the `Cassandra-Reaper tool <CassandraREAPER_>`_ as a potential way to automate the repair process.
+Based on the CAP theorem, Cassandra can be classified as an `AP <AP_>`_ database. The cost for strong consistency is higher latency, so the database has its own mechanisms to ensure eventual consistency in the system. However, human intervention is often necessary. It is critical that the Cassandra cluster is regularly repaired using the ``nodetool repair`` and nodetool compact command. The following documentations `1 <ONE_>`_, `2 <TWO_>`_ give an overview of the nodetool functionality. We suggest exploring the `Cassandra-Reaper tool <CassandraREAPER_>`_ as a potential way to automate the repair process.
 
 Nodetool Repair
 """""""""""""""""
@@ -177,11 +177,11 @@ Indexing
 
 Holmes-Storage uses `SASIIndex <SASI_>`_ for indexing the Cassandra database. This indexing allows for querying of large datasets with minimal overhead. When leveraging Cassandra, most of the Holmes Processing tools will automatically use SASI indexes for speed improvements. Power users wishing to learn more about how to utilize these indexes should please visit the excellent blog post by `Doan DyuHai <DOAN_>`_.
 
-However while SASI is powerful, it is not meant to be a replacement for advanced search and aggregation engines like `Solr <Solr_>`_, `Elasticsearch <Elastic_>`_, or leveraging `Spark <Spark_>`_. Additionally, Holmes Storage by default does not implement SASI on the table for storing the results of TOTEM Services (results.results). This is because indexing this field can increase storage costs by approximately 40% on standard deployments. If you still wish to leverage SASI on results.results, the following Cassandra command will provide a sane level of indexing.
+However, while SASI is powerful, it is not meant to be a replacement for advanced search and aggregation engines like `Solr <Solr_>`_, `Elasticsearch <Elastic_>`_, or leveraging `Spark <Spark_>`_. Additionally, Holmes Storage by default does not implement SASI on the table for storing the results of TOTEM Services (results.results). This is because indexing this field can increase storage costs by approximately 40% on standard deployments. If you still wish to leverage SASI on results.results, the following Cassandra command will provide a sane level of indexing.
 
 SASI indexing of TOTEM Service results. WARNING: this will greatly increase storage requirement:
 
-.. code-block:: sql
+.. code-block:: SQL
 
 	CREATE CUSTOM INDEX results_results_idx ON holmes_testing.results (results) 
 	USING 'org.apache.cassandra.index.sasi.SASIIndex' 

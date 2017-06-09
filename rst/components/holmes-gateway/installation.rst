@@ -176,7 +176,7 @@ Example:
     "MaxUploadSize":     200
   }
 
-In addition to the regular config files Holmes-Gateway requires RSA keys to
+In addition to the regular config files, Holmes-Gateway requires RSA keys to
 provide its services. The structure explained above requires these for security
 reasons.
 
@@ -208,7 +208,7 @@ As a result, these rules apply:
   if it misses the appropriate public key (key of the source)
 - A slave gateway will reject tickets that it cannot verify or decrypt
 - Keys must be named accurately
-  - source keys must be named exactly like the corresponding source
+  - source keys must be named exactly as the corresponding source
   - organization keys must be named exactly like the corresponding organization
   - all keys must have the appropriate ``.priv`` or ``.pub`` suffix
 
@@ -247,7 +247,7 @@ For example, to create the master gateway key use:
 This will create a keypair (``org_holmesprocessing.priv`` and ``org_holmesprocessing.pub``)
 in ``config/keys/tickets``.
 
-Similarly if you execute:
+Similarly, if you execute:
 
 .. code-block:: shell
 
@@ -287,8 +287,8 @@ Holmes-Totem or Holmes-Totem-Dynamic.
     go build .
 
 The framework requires one Holmes-Gateway running in Master mode and the Master
-Gateway needs a SSL certificate to function. If you don't have a SSL certificate
-at hand you can simply create a self signed one by using the provided shell
+Gateway needs an SSL certificate to function. If you don't have an SSL certificate
+at hand, you can simply create a self-signed one by using the provided shell
 script:
 
 .. code-block:: shell
