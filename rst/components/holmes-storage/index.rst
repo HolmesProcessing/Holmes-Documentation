@@ -1,5 +1,7 @@
-Holmes Storage
-==================
+`Holmes Storage <Storage_>`_
+=====================================
+
+.. _Storage: https://github.com/HolmesProcessing/Holmes-Storage
 
 .. toctree::
 

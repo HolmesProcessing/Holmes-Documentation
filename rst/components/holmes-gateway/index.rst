@@ -1,6 +1,8 @@
-======================
-Holmes Gateway
-======================
+======================================
+`Holmes Gateway <Gateway_>`_
+======================================
+
+.. _Gateway: https://github.com/HolmesProcessing/Holmes-Gateway
 
 .. toctree::
 
