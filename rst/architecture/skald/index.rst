@@ -4,6 +4,6 @@ Skald
 
 .. toctree::
 
-	planners
-	transport
+	Planner <planners>
+	Transport <transport>
 	Services <services/index>
