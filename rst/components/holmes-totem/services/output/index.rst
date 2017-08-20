@@ -3,18 +3,15 @@ Services-Output
 
 HTTP Error Codes
 ##################
-Holmes Services attempts to return appropriate HTTP Error Codes when a requested for analysis. This codes will be used by the watchdog to manage results.
+Holmes Services attempts to return appropriate HTTP error code when a requested for analysis. This codes will be used by the watchdog to manage results.
 
 The Error codes table follow this pattern:
 
-200 (OK) - Service returns analysis results in JSON format.
-4XX (client errors) 
-5XX (server errors) from Service logic section
-6XX - Custom Errors
+- 200 (OK) - Service returns analysis results in JSON format.
+- 4XX (client errors)
+- 5XX (server errors) from Service logic section
+- 6XX - Custom Errors
 
-If the service returns an error, it returns an empty JSON format and corresponding error code.
-
-List of Errors codes:
 
 These are general error codes:
 
@@ -34,7 +31,6 @@ These are general error codes:
 
 
 
-
 Apart from these, you can define your own custom error codes. We would suggest doing so starting with 600. (refer to PEMETA service which uses error codes to report error to TOTEM)
 
 +--------+----------------------+---------------------------------------------------+
@@ -43,7 +39,6 @@ Apart from these, you can define your own custom error codes. We would suggest d
 | 601    |  ALLOCATION FAILURE  |   Cannot allocate memory to LIBPE function        |
 +--------+----------------------+---------------------------------------------------+
 
-All the services by default should run on port 8080 so that docker compose can port forward it to a specified port.
 
 These error codes will notify watchdog about the behavior of the service and based on these error codes, watchdog can manage results more intelligently
 
@@ -55,26 +50,28 @@ JSON
 
 The mime type of the data returned by Totem Service is JSON. The output should be meaningful so that it it becomes easier for the interrogation planner to produce knowledge from the results. 
 
-The output is a typical json (*an example for json.org*)
+The output is a typical json (* part of output for returned by pemeta*)
 
 .. code-block:: json
 
-	{"menu": {
-	  "id": "file",
-	  "value": "File",
-	  "popup": {
-	    "menuitem": [
-	      {"value": "New", "onclick": "CreateNewDoc()"},
-	      {"value": "Open", "onclick": "OpenDoc()"},
-	      {"value": "Close", "onclick": "CloseDoc()"}
-	    ]
-	  }
-	}}
+	{
+		"Exports": {},
+		"Resources": "",
+		"Imports": [
+			{
+			"DllName": "SHELL32.dll",
+				"Functions": [
+					"ShellExecuteA",
+					"FindExecutableA"
+				]
+			}
+		]
+	}
 
-
-.. warning::
+.. note::
 
 	All the first level keys of the output JSON should be property of the file that the Service is supposed to analysed. If the a particular property is absent in the file, then the value for the key should empty.
 
+In the above snippet, **Imports** is a property of PE file. Imports is a list of DLLs. Each item of the list contains Dll Name and functions present in that DLL
 
-
+Also, **Exports** value is an empty struct. This means that the service has analysed Exports, but could not find any results.
