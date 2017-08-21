@@ -31,6 +31,10 @@ For each Service, The Service author should create a file called `service.conf` 
 		}
 	}
 
+.. warning::
+	All the services by default should run on port 8080 so that docker compose can port forward it to a specified port
+
+
 Centralised Service configuration of Holmes Totem
 ----------------------------------------------------
 Holmes system allows an admin to store the Totem Service configurations in a central location and make the system automatically load it from there upon upstart. This is useful when you start up multiple Totem at different locations all working with the same service configuration because copying of all the Services everywhere is quite tedious. Instead, you only have to modify the config file on one machine and upload it and then rebuilt the containers on all the machines. It makes distributed service configuration changes easier.
@@ -96,7 +100,7 @@ Scala File
 -----------------
 Holmes-Totem schedules the execution of its Services. Holmes Totem Services are web servers that receive tasks via HTTP request. This file tells Service How to interact with Totem. Totem imports this file in `driver.scala` and schedules the task
 
-Containerisation
+Containerization
 ----------------------
 
 Since we are trying to analyse malware sample, there could be a risk that analysis could could damage a environment in which Service is running on. To minimize this risk, we should we use sandbox environment. 
@@ -115,13 +119,10 @@ To pack and isolate the above discussed parts (except Scala file), we need to do
 	# Get Language dependencies
 	RUN apk add --no-cache \
 	        git \
-			\
 	        && rm -rf /var/cache/apk/*
 
 	# Get Analyzer Library dependencies
 	RUN apk add --no-cache \
-			\
-			\
 		   && rm -rf /var/cache/apk/*
 
 	# Clean Up
